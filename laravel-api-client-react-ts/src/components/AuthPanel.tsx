@@ -13,7 +13,9 @@ export default function AuthPanel({ onAuthed }: Props) {
 
   const onLogin = guard(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    // Save the form now: event.currentTarget becomes null after the first await.
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const data = await api<AuthResponse>('/login', {
       method: 'POST',
       body: { email: form.get('email'), password: form.get('password') },
@@ -22,14 +24,15 @@ export default function AuthPanel({ onAuthed }: Props) {
     if (!data.token) throw new Error(errorText(200, data));
 
     login(data);
-    event.currentTarget.reset();
+    formElement.reset();
     onAuthed();
     notify(`Welcome back, ${data.user.name}.`);
   });
 
   const onRegister = guard(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const data = await api<AuthResponse>('/register', {
       method: 'POST',
       body: {
@@ -40,7 +43,7 @@ export default function AuthPanel({ onAuthed }: Props) {
       },
     });
     login(data);
-    event.currentTarget.reset();
+    formElement.reset();
     onAuthed();
     notify(`Account created. You are logged in as ${data.user.name}.`);
   });
